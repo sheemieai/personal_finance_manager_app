@@ -6,20 +6,20 @@ import 'pages/4/savings_goals_page.dart';
 import 'pages/5/investments_page.dart';
 
 void main() {
-  runApp(ColorPagesApp());
+  runApp(FinancePagesApp());
 }
 
-class ColorPagesApp extends StatelessWidget {
+class FinancePagesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Color Pages App",
-      home: ColorPages(),
+      title: "Personal Finance Manager",
+      home: FinancePages(),
     );
   }
 }
 
-class ColorPages extends StatelessWidget {
+class FinancePages extends StatelessWidget {
   // List of pages
   final List<Widget> pages = [
     LoginInPage(),
@@ -33,7 +33,7 @@ class ColorPages extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Color Pages"),
+        title: const Text("Personal Finance Manager"),
       ),
       body: PageView.builder(
         itemCount: pages.length,
