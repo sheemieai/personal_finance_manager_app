@@ -133,17 +133,39 @@ class DatabaseHelper {
 
   Future<int?> validateUser(final String username, final String password) async {
     final db = await instance.database;
-    final hashedPassword = sha256.convert(utf8.encode(password)).toString();
 
-    final result = await db.query(
-        "users", where: "username = ? AND password = ?",
-        whereArgs: [username, hashedPassword]);
+    // Query to find the user
+    final List<Map<String, dynamic>> users = await db.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [username],
+    );
 
-    if (result.isNotEmpty) {
-      return result.first["id"] as int?;
-    } else {
+    if (users.isEmpty) {
+      // No username found
       return null;
+    } else {
+      // Correct username and password
+      final String hashedPassword = sha256.convert(utf8.encode(password)).toString();
+      if (users.first['password'] == hashedPassword) {
+        return users.first['id'];
+      } else {
+        // Wrong password
+        return -1;
+      }
     }
+  }
+
+  Future<bool> isUsernameTaken(final String username) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> users = await db.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [username],
+    );
+
+    return users.isNotEmpty;
   }
 
   // User Income Table Functions

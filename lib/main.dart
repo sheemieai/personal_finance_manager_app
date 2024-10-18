@@ -38,7 +38,7 @@ class FinancePages extends StatelessWidget {
       body: PageView.builder(
         itemCount: pages.length,
         itemBuilder: (context, index) {
-          return pages[index]; // Change index here to switch pages
+          return pages[0]; // Change index here to switch pages
         },
       ),
     );
