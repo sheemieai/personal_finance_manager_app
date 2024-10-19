@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../db/database_utils.dart';
 import '../2/home_page.dart';
 
@@ -28,22 +29,39 @@ class _LoginInPageState extends State<LoginInPage> {
 
   void loginInButtonClicked() async {
     final int? databaseResult = await DatabaseHelper.instance.validateUser(
-      usernameController.text, passwordController.text,
+      usernameController.text.toLowerCase(), passwordController.text,
     );
 
-    setState(() {
-      if (databaseResult == null) {
+    if (databaseResult == null) {
+      setState(() {
         alertTextFieldString = "User not found!";
-      } else if (databaseResult == -1) {
+      });
+    } else if (databaseResult == -1) {
+      setState(() {
         alertTextFieldString = "Wrong password!!";
-      } else {
-        alertTextFieldString = "Login successful!";
+      });
+    } else {
+      final int? userIdResult = await DatabaseHelper.instance.getUserIdByUsername(
+          usernameController.text.toLowerCase());
+
+      if (userIdResult != null && userIdResult > 0) {
+        await DatabaseHelper.instance.addLoggedInUser(userIdResult,
+            usernameController.text.toLowerCase());
+
+        setState(() {
+          alertTextFieldString = "Login successful!";
+        });
+
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
+      } else {
+        setState(() {
+          alertTextFieldString = "User not found!";
+        });
       }
-    });
+    }
 
     alertDisappearEffect();
   }
@@ -64,7 +82,7 @@ class _LoginInPageState extends State<LoginInPage> {
       });
     } else {
       final bool databaseUsernameResult = await DatabaseHelper.instance.isUsernameTaken(
-          createUsernameController.text);
+          createUsernameController.text.toLowerCase());
 
       if (databaseUsernameResult) {
         setState(() {
@@ -91,7 +109,7 @@ class _LoginInPageState extends State<LoginInPage> {
       });
 
       final int databaseResult = await DatabaseHelper.instance.createUser(
-        createUsernameController.text, createPasswordController.text,
+        createUsernameController.text.toLowerCase(), createPasswordController.text,
       );
 
       setState(() {
@@ -106,11 +124,32 @@ class _LoginInPageState extends State<LoginInPage> {
     }
   }
 
+  Future<void> deleteDatabaseFile() async {
+    await DatabaseHelper.instance.deleteDatabaseFile();
+    setState(() {
+      alertTextFieldString = "Database deleted and will be recreated.";
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
 
     return MaterialApp(
       home: Scaffold(
+        /*
+        appBar: AppBar(
+          title: const Text("Reset Database"),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () async {
+                await deleteDatabaseFile();
+              },
+              tooltip: "Reset Database",
+            ),
+          ],
+        ),
+         */
         resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: SingleChildScrollView(

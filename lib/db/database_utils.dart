@@ -120,6 +120,15 @@ class DatabaseHelper {
       FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
     )
     ''');
+
+    // Current user logged in table
+    await db.execute('''
+    CREATE TABLE current_user (
+      user_id INTEGER NOT NULL UNIQUE,
+      username TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    )
+    ''');
   }
 
   // Users Table Functions
@@ -168,6 +177,23 @@ class DatabaseHelper {
     return users.isNotEmpty;
   }
 
+  Future<int?> getUserIdByUsername(final String username) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "users",
+      columns: ["id"],
+      where: "username = ?",
+      whereArgs: [username],
+    );
+
+    if (result.isEmpty) {
+      return null;
+    } else {
+      return result.first["id"];
+    }
+  }
+
   // User Income Table Functions
   Future<int> createUserIncome(final int userId, final int income) async {
     final db = await instance.database;
@@ -190,6 +216,55 @@ class DatabaseHelper {
   Future<int> deleteUserIncome(final int id) async {
     final db = await instance.database;
     return await db.delete("user_income", where: "id = ?", whereArgs: [id]);
+  }
+
+  Future<bool> doesIncomeExist(final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "user_income",
+      where: "user_id = ?",
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    return result.isNotEmpty;
+  }
+
+  Future<int?> getIncomeIdByUserId(final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "user_income",
+      columns: ["id"],
+      where: "user_id = ?",
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (result.isNotEmpty) {
+      return result.first["id"];
+    } else {
+      return null;
+    }
+  }
+
+  Future<int?> getIncomeByUserId(final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "user_income",
+      columns: ["income"],
+      where: "user_id = ?",
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (result.isNotEmpty) {
+      return result.first["income"] as int?;
+    } else {
+      return null;
+    }
   }
 
   // User Expenses Table Functions
@@ -374,5 +449,50 @@ class DatabaseHelper {
   Future<int> deleteUserBudget(final int id) async {
     final db = await instance.database;
     return await db.delete("user_budget", where: "id = ?", whereArgs: [id]);
+  }
+
+  // Current User Table Functions
+  Future<String?> getLoggedInUsername() async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "current_user",
+      columns: ["username"],
+      limit: 1,
+    );
+
+    if (result.isEmpty) {
+      return null;
+    } else {
+      return result.first["username"];
+    }
+  }
+
+  Future<int> addLoggedInUser(final int userId, final String username) async {
+    final db = await instance.database;
+
+    return await db.insert(
+      "current_user",
+      {
+        "user_id": userId,
+        "username": username,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<int> deleteLoggedInUser() async {
+    final db = await instance.database;
+
+    return await db.delete("current_user");
+  }
+
+  // Other database Functions
+  Future<void> deleteDatabaseFile() async {
+    // Deletes the database file
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'app.db');
+
+    await deleteDatabase(path);
   }
 }
