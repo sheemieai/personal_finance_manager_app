@@ -9,12 +9,12 @@ class SavingGoalsPage extends StatefulWidget {
 }
 
 class _SavingGoalsPageState extends State<SavingGoalsPage> {
-  // TODO change default values.
-  String selectedOption = 'Daily';
-  double dailySpending = 200.0;
-  double weeklySpending = 800.0;
-  double monthlySpending = 3000.0;
-  double budget = 1000.0;
+  String selectedOption = '';
+  double dailySpending = 0.0;
+  double weeklySpending = 0.0;
+  double monthlySpending = 0.0;
+  double budget = 0.0;
+  final TextEditingController spendingController = TextEditingController();
 
   // Method to update (Daily, Weekly, Monthly)
   void updateOption(String option) {
@@ -179,10 +179,31 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
               child: const Text('Change Budget'),
             ),
             const SizedBox(height: 10),
-            // Add Spending Button
+            // text field for adding spending
+            TextField(
+              controller: spendingController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Enter spending amount',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Add button
             ElevatedButton(
               onPressed: () {
-                // TODO add logic for add button
+                double enteredSpending =
+                    double.tryParse(spendingController.text) ?? 0.0;
+                setState(() {
+                  if (selectedOption == 'Daily') {
+                    dailySpending += enteredSpending;
+                  } else if (selectedOption == 'Weekly') {
+                    weeklySpending += enteredSpending;
+                  } else if (selectedOption == 'Monthly') {
+                    monthlySpending += enteredSpending;
+                  }
+                  spendingController.clear();
+                });
               },
               child: const Text('Add Spending'),
             ),
