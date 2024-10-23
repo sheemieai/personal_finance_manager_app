@@ -136,11 +136,12 @@ class DatabaseHelper {
     final db = await instance.database;
     final hashedPassword = sha256.convert(utf8.encode(password)).toString();
 
-    return await db.insert(
-        "users", {"username": username, "password": hashedPassword});
+    return await db
+        .insert("users", {"username": username, "password": hashedPassword});
   }
 
-  Future<int?> validateUser(final String username, final String password) async {
+  Future<int?> validateUser(
+      final String username, final String password) async {
     final db = await instance.database;
 
     // Query to find the user
@@ -155,7 +156,8 @@ class DatabaseHelper {
       return null;
     } else {
       // Correct username and password
-      final String hashedPassword = sha256.convert(utf8.encode(password)).toString();
+      final String hashedPassword =
+          sha256.convert(utf8.encode(password)).toString();
       if (users.first['password'] == hashedPassword) {
         return users.first['id'];
       } else {
@@ -203,7 +205,8 @@ class DatabaseHelper {
     });
   }
 
-  Future<int> updateUserIncome(final int id, final int userId, final int income) async {
+  Future<int> updateUserIncome(
+      final int id, final int userId, final int income) async {
     final db = await instance.database;
     return await db.update(
       "user_income",
@@ -268,7 +271,8 @@ class DatabaseHelper {
   }
 
   // User Expenses Table Functions
-  Future<int> createUserExpense(final int userId, final String userExpenseName) async {
+  Future<int> createUserExpense(
+      final int userId, final String userExpenseName) async {
     final db = await instance.database;
     return await db.insert("user_expenses", {
       "user_id": userId,
@@ -276,7 +280,8 @@ class DatabaseHelper {
     });
   }
 
-  Future<int> updateUserExpense(final int id, final int userId, final String userExpenseName) async {
+  Future<int> updateUserExpense(
+      final int id, final int userId, final String userExpenseName) async {
     final db = await instance.database;
     return await db.update(
       "user_expenses",
@@ -302,8 +307,8 @@ class DatabaseHelper {
     });
   }
 
-  Future<int> updateExpense(final int id, final int userExpenseId, final String expenseName,
-      final int expenseCost) async {
+  Future<int> updateExpense(final int id, final int userExpenseId,
+      final String expenseName, final int expenseCost) async {
     final db = await instance.database;
     return await db.update(
       "expenses_table",
@@ -323,7 +328,8 @@ class DatabaseHelper {
   }
 
   // User Investment Table Functions
-  Future<int> createUserInvestment(final int userId, final int totalInvestAmount) async {
+  Future<int> createUserInvestment(
+      final int userId, final int totalInvestAmount) async {
     final db = await instance.database;
     return await db.insert("user_investment", {
       "user_id": userId,
@@ -331,7 +337,8 @@ class DatabaseHelper {
     });
   }
 
-  Future<int> updateUserInvestment(final int id, final int userId, final int totalInvestAmount) async {
+  Future<int> updateUserInvestment(
+      final int id, final int userId, final int totalInvestAmount) async {
     final db = await instance.database;
     return await db.update(
       "user_investment",
@@ -346,9 +353,21 @@ class DatabaseHelper {
     return await db.delete("user_investment", where: "id = ?", whereArgs: [id]);
   }
 
+  Future<int> getUserInvestmentTotalByUserId(final int userId) async {
+    final db = await database;
+    final result = await db.query(
+      'user_investment',
+      columns: ['total_invest_amount'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+    return result.isNotEmpty ? result.first['total_invest_amount'] as int : 0;
+  }
+
   // Investment Portfolio Table Functions
-  Future<int> createInvestmentPortfolio(final int userId, final String portfolioName,
-      int totalPortfolioAmount) async {
+  Future<int> createInvestmentPortfolio(final int userId,
+      final String portfolioName, int totalPortfolioAmount) async {
     final db = await instance.database;
     return await db.insert("investment_portfolio", {
       "user_id": userId,
@@ -357,8 +376,8 @@ class DatabaseHelper {
     });
   }
 
-  Future<int> updateInvestmentPortfolio(final int id, final int userId, final String portfolioName,
-      final int totalPortfolioAmount) async {
+  Future<int> updateInvestmentPortfolio(final int id, final int userId,
+      final String portfolioName, final int totalPortfolioAmount) async {
     final db = await instance.database;
     return await db.update(
       "investment_portfolio",
@@ -374,12 +393,75 @@ class DatabaseHelper {
 
   Future<int> deleteInvestmentPortfolio(int id) async {
     final db = await instance.database;
-    return await db.delete("investment_portfolio", where: "id = ?", whereArgs: [id]);
+    return await db
+        .delete("investment_portfolio", where: "id = ?", whereArgs: [id]);
+  }
+
+  Future<void> updateTotalPortfolioAmountByUserId(final int userId) async {
+    final db = await database;
+
+    final portfolioResult = await db.query(
+      'investment_portfolio',
+      columns: ['total_portfolio_amount'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+
+    int total = 0;
+    for (var row in portfolioResult) {
+      total += row['total_portfolio_amount'] as int;
+    }
+
+    final userInvestmentResult = await db.query(
+      'user_investment',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (userInvestmentResult.isNotEmpty) {
+      await db.update(
+        'user_investment',
+        {'total_invest_amount': total},
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    } else {
+      await db.insert('user_investment', {
+        'user_id': userId,
+        'total_invest_amount': total,
+      });
+    }
+  }
+
+  Future<Map<String, String>> getPortfoliosById(final int userId) async {
+    final db = await database;
+
+    final portfolioResult = await db.query(
+      'investment_portfolio',
+      columns: ['portfolio_name', 'total_portfolio_amount'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+
+    Map<String, String> portfolioMap = {};
+
+    for (var row in portfolioResult) {
+      portfolioMap[row['portfolio_name'] as String] =
+          row['total_portfolio_amount'].toString();
+    }
+
+    return portfolioMap;
   }
 
   // User Savings Table Functions
-  Future<int> createUserSavings(final int userId, final String entryMonth, final int entryDateNumber,
-      final String entryYear, final String entryDayOfWeek, final String entryName,
+  Future<int> createUserSavings(
+      final int userId,
+      final String entryMonth,
+      final int entryDateNumber,
+      final String entryYear,
+      final String entryDayOfWeek,
+      final String entryName,
       final int entryCost) async {
     final db = await instance.database;
     return await db.insert("user_savings", {
@@ -393,9 +475,15 @@ class DatabaseHelper {
     });
   }
 
-  Future<int> updateUserSavings(final int id, final int userId, final String entryMonth,
-      final int entryDateNumber, final String entryYear, final String entryDayOfWeek,
-      final String entryName, final int entryCost) async {
+  Future<int> updateUserSavings(
+      final int id,
+      final int userId,
+      final String entryMonth,
+      final int entryDateNumber,
+      final String entryYear,
+      final String entryDayOfWeek,
+      final String entryName,
+      final int entryCost) async {
     final db = await instance.database;
     return await db.update(
       "user_savings",
@@ -419,8 +507,8 @@ class DatabaseHelper {
   }
 
   // User Budget Table Functions
-  Future<int> createUserBudget(final int userId, final int dailyBudget, final int weeklyBudget,
-      final int monthlyBudget) async {
+  Future<int> createUserBudget(final int userId, final int dailyBudget,
+      final int weeklyBudget, final int monthlyBudget) async {
     final db = await instance.database;
     return await db.insert("user_budget", {
       "user_id": userId,
@@ -430,8 +518,12 @@ class DatabaseHelper {
     });
   }
 
-  Future<int> updateUserBudget(final int id, final int userId, final int dailyBudget,
-      final int weeklyBudget, final int monthlyBudget) async {
+  Future<int> updateUserBudget(
+      final int id,
+      final int userId,
+      final int dailyBudget,
+      final int weeklyBudget,
+      final int monthlyBudget) async {
     final db = await instance.database;
     return await db.update(
       "user_budget",

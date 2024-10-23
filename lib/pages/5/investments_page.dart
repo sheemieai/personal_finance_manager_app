@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:personal_finance_manager/db/database_utils.dart';
 
 class InvestmentPage extends StatefulWidget {
   const InvestmentPage({super.key});
@@ -11,8 +12,9 @@ class _InvestmentPageState extends State<InvestmentPage> {
   final TextEditingController companyController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
 
-  List<Map<String, String>> investments = [];
-  double totalInvestment = 0;
+  Map<String, String> investments = {};
+  List<Map<String, String>> investmentsList = [];
+  int totalInvestment = 0;
 
   @override
   void dispose() {
@@ -22,17 +24,31 @@ class _InvestmentPageState extends State<InvestmentPage> {
   }
 
   // Add Investment method
-  void _addInvestment() {
-    String company = companyController.text;
+  void _addInvestment() async {
+    String company = companyController.text.toLowerCase();
     String amount = amountController.text;
+    final String? username =
+        await DatabaseHelper.instance.getLoggedInUsername();
+    final int? userId =
+        await DatabaseHelper.instance.getUserIdByUsername(username!);
+    final int? createInvestmentResult = await DatabaseHelper.instance
+        .createInvestmentPortfolio(userId!, company, int.parse(amount));
+    if (createInvestmentResult! > 0) {
+      await DatabaseHelper.instance.updateTotalPortfolioAmountByUserId(userId);
+      final int databaseTotalInvestment =
+          await DatabaseHelper.instance.getUserInvestmentTotalByUserId(userId!);
 
-    if (company.isNotEmpty && amount.isNotEmpty) {
-      setState(() {
-        investments.add({'company': company, 'amount': '\$$amount'});
-        totalInvestment += double.tryParse(amount) ?? 0;
-      });
-      companyController.clear();
-      amountController.clear();
+      if (company.isNotEmpty && amount.isNotEmpty) {
+        final Map<String, String> databaseInvestmentsMap =
+            await DatabaseHelper.instance.getPortfoliosById(userId);
+        setState(() {
+          investments = databaseInvestmentsMap;
+          investmentsList.add(investments);
+          totalInvestment = databaseTotalInvestment;
+        });
+        companyController.clear();
+        amountController.clear();
+      }
     }
   }
 
@@ -77,9 +93,10 @@ class _InvestmentPageState extends State<InvestmentPage> {
                 child: ListView.builder(
                   itemCount: investments.length,
                   itemBuilder: (context, index) {
+                    String key = investments.keys.elementAt(index);
                     return InvestmentItem(
-                      company: investments[index]['company']!,
-                      amount: investments[index]['amount']!,
+                      company: key,
+                      amount: investments[key]!,
                     );
                   },
                 ),
