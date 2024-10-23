@@ -21,7 +21,7 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
   double monthlyBudget = 0.0;
 
   final TextEditingController spendingController = TextEditingController();
-  final TextEditingController BudgetController = TextEditingController();
+  final TextEditingController budgetController = TextEditingController();
 
   // Method to update (Daily, Weekly, Monthly)
   void updateOption(String option) {
@@ -31,6 +31,7 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
     });
   }
 
+  // Method to get current spending
   double getCurrentSpending() {
     switch (selectedOption) {
       case 'Daily':
@@ -44,6 +45,7 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
     }
   }
 
+  // MEthod to get current budget
   double getCurrentBudget() {
     switch (selectedOption) {
       case 'Daily':
@@ -55,6 +57,68 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
       default:
         return dailyBudget;
     }
+  }
+
+  // Method to validate the selection
+  bool validateSelection() {
+    if (selectedOption.isEmpty) {
+      setState(() {
+        errorMessage = 'Please select an option (Daily, Weekly, Monthly)!!';
+      });
+      return false;
+    }
+    setState(() {
+      errorMessage = '';
+    });
+    return true;
+  }
+
+  // Method to add spending based on selection
+  void addSpending() {
+    if (!validateSelection()) return;
+
+    double enteredSpending = double.tryParse(spendingController.text) ?? 0.0;
+
+    setState(() {
+      switch (selectedOption) {
+        case 'Daily':
+          dailySpending += enteredSpending;
+          break;
+        case 'Weekly':
+          weeklySpending += enteredSpending;
+          break;
+        case 'Monthly':
+          monthlySpending += enteredSpending;
+          break;
+        default:
+          break;
+      }
+      spendingController.clear();
+    });
+  }
+
+  // Method to add budget based on selection
+  void addBudget() {
+    if (!validateSelection()) return;
+
+    double enteredBudget = double.tryParse(budgetController.text) ?? 0.0;
+
+    setState(() {
+      switch (selectedOption) {
+        case 'Daily':
+          dailyBudget = enteredBudget;
+          break;
+        case 'Weekly':
+          weeklyBudget = enteredBudget;
+          break;
+        case 'Monthly':
+          monthlyBudget = enteredBudget;
+          break;
+        default:
+          break;
+      }
+      budgetController.clear();
+    });
   }
 
   @override
@@ -214,11 +278,10 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
             // Text Field for Changing Budget
             Row(
               children: [
-                // Half-width Text Field for budget
                 Expanded(
-                  flex: 1, // Makes it take half the available width
+                  flex: 1,
                   child: TextField(
-                    controller: BudgetController,
+                    controller: budgetController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Enter Budget amount',
@@ -226,31 +289,12 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                    width: 10), // Space between the text field and button
+                const SizedBox(width: 10),
 
                 // Change Budget Button
                 ElevatedButton(
                   onPressed: () {
-                    if (selectedOption.isEmpty) {
-                      setState(() {
-                        errorMessage =
-                            'Please select an option (Daily, Weekly, Monthly)!!';
-                      });
-                      return;
-                    }
-                    double enteredBudget =
-                        double.tryParse(BudgetController.text) ?? 0.0;
-                    setState(() {
-                      if (selectedOption == 'Daily') {
-                        dailyBudget = enteredBudget;
-                      } else if (selectedOption == 'Weekly') {
-                        weeklyBudget = enteredBudget;
-                      } else if (selectedOption == 'Monthly') {
-                        monthlyBudget = enteredBudget;
-                      }
-                      BudgetController.clear();
-                    });
+                    addBudget();
                   },
                   child: const Text('Change Budget'),
                 ),
@@ -260,9 +304,8 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
             // text field for adding spending
             Row(
               children: [
-                // Half-width Text Field for spending
                 Expanded(
-                  flex: 1, // Makes it take half the available width
+                  flex: 1,
                   child: TextField(
                     controller: spendingController,
                     keyboardType: TextInputType.number,
@@ -272,31 +315,12 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                    width: 10), // Space between the text field and button
+                const SizedBox(width: 10),
 
                 // Add Spending Button
                 ElevatedButton(
                   onPressed: () {
-                    if (selectedOption.isEmpty) {
-                      setState(() {
-                        errorMessage =
-                            'Please select an option (Daily, Weekly, Monthly)!!';
-                      });
-                      return;
-                    }
-                    double enteredSpending =
-                        double.tryParse(spendingController.text) ?? 0.0;
-                    setState(() {
-                      if (selectedOption == 'Daily') {
-                        dailySpending += enteredSpending;
-                      } else if (selectedOption == 'Weekly') {
-                        weeklySpending += enteredSpending;
-                      } else if (selectedOption == 'Monthly') {
-                        monthlySpending += enteredSpending;
-                      }
-                      spendingController.clear();
-                    });
+                    addSpending();
                   },
                   child: const Text('Add Spending'),
                 ),
