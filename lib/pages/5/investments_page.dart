@@ -13,14 +13,44 @@ class _InvestmentPageState extends State<InvestmentPage> {
   final TextEditingController amountController = TextEditingController();
 
   Map<String, String> investments = {};
-  List<Map<String, String>> investmentsList = [];
   int totalInvestment = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _getInvestmentTotal();
+    _getPortfolioMap();
+  }
 
   @override
   void dispose() {
     companyController.dispose();
     amountController.dispose();
     super.dispose();
+  }
+
+  void _getInvestmentTotal() async {
+    final String? username =
+        await DatabaseHelper.instance.getLoggedInUsername();
+    final int? userId =
+        await DatabaseHelper.instance.getUserIdByUsername(username!);
+    final int databaseTotalInvestment =
+        await DatabaseHelper.instance.getUserInvestmentTotalByUserId(userId!);
+    setState(() {
+      totalInvestment = databaseTotalInvestment;
+    });
+  }
+
+  void _getPortfolioMap() async {
+    final String? username =
+        await DatabaseHelper.instance.getLoggedInUsername();
+    final int? userId =
+        await DatabaseHelper.instance.getUserIdByUsername(username!);
+    final Map<String, String> databaseInvestmentsMap =
+        await DatabaseHelper.instance.getPortfoliosById(userId!);
+    setState(() {
+      investments = databaseInvestmentsMap;
+    });
   }
 
   // Add Investment method
@@ -43,7 +73,6 @@ class _InvestmentPageState extends State<InvestmentPage> {
             await DatabaseHelper.instance.getPortfoliosById(userId);
         setState(() {
           investments = databaseInvestmentsMap;
-          investmentsList.add(investments);
           totalInvestment = databaseTotalInvestment;
         });
         companyController.clear();
@@ -90,15 +119,20 @@ class _InvestmentPageState extends State<InvestmentPage> {
                   color: const Color.fromARGB(255, 174, 142, 214),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: ListView.builder(
-                  itemCount: investments.length,
-                  itemBuilder: (context, index) {
-                    String key = investments.keys.elementAt(index);
-                    return InvestmentItem(
-                      company: key,
-                      amount: investments[key]!,
-                    );
-                  },
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  thickness: 6.0,
+                  radius: const Radius.circular(10),
+                  child: ListView.builder(
+                    itemCount: investments.length,
+                    itemBuilder: (context, index) {
+                      String key = investments.keys.elementAt(index);
+                      return InvestmentItem(
+                        company: key,
+                        amount: investments[key]!,
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
