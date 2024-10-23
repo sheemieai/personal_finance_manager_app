@@ -1,7 +1,40 @@
 import 'package:flutter/material.dart';
 
-class InvestmentPage extends StatelessWidget {
+class InvestmentPage extends StatefulWidget {
   const InvestmentPage({super.key});
+
+  @override
+  _InvestmentPageState createState() => _InvestmentPageState();
+}
+
+class _InvestmentPageState extends State<InvestmentPage> {
+  final TextEditingController companyController = TextEditingController();
+  final TextEditingController amountController = TextEditingController();
+
+  List<Map<String, String>> investments = [];
+  double totalInvestment = 0;
+
+  @override
+  void dispose() {
+    companyController.dispose();
+    amountController.dispose();
+    super.dispose();
+  }
+
+  // Add Investment method
+  void _addInvestment() {
+    String company = companyController.text;
+    String amount = amountController.text;
+
+    if (company.isNotEmpty && amount.isNotEmpty) {
+      setState(() {
+        investments.add({'company': company, 'amount': '\$$amount'});
+        totalInvestment += double.tryParse(amount) ?? 0;
+      });
+      companyController.clear();
+      amountController.clear();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,21 +45,21 @@ class InvestmentPage extends StatelessWidget {
       ),
       body: Container(
         color: const Color.fromARGB(255, 219, 189, 255),
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Total Investment Display
             Container(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-               color: const Color.fromARGB(255, 219, 189, 255),
+                color: const Color.fromARGB(255, 219, 189, 255),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text(
-                'Total Invest\n\$10,000',
-                style: TextStyle(
+              child: Text(
+                'Total Invest\n\$${totalInvestment.toStringAsFixed(2)}',
+                style: const TextStyle(
                   fontSize: 30,
                   color: Colors.white,
                 ),
@@ -36,45 +69,77 @@ class InvestmentPage extends StatelessWidget {
             // Portfolio with Scrollable List
             Expanded(
               child: Container(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 174, 142, 214),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: ListView(
-                  children: const [
-                    InvestmentItem(company: 'Apple', amount: '\$5000'),
-                    InvestmentItem(company: 'Adidas', amount: '\$5000'),
-                    // Add more companies here
-                  ],
+                child: ListView.builder(
+                  itemCount: investments.length,
+                  itemBuilder: (context, index) {
+                    return InvestmentItem(
+                      company: investments[index]['company']!,
+                      amount: investments[index]['amount']!,
+                    );
+                  },
                 ),
               ),
             ),
 
-            // Add and Back buttons
+            // TextFields and Add button
             Padding(
-              padding: const EdgeInsets.only(top: 20.0),
+              padding: const EdgeInsets.only(top: 20),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      // Code for adding new investments
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple[700],
+                  // Text Field for company name
+                  Expanded(
+                    flex: 1,
+                    child: TextField(
+                      controller: companyController,
+                      decoration: const InputDecoration(
+                        hintText: 'Company Name',
+                        border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
                     ),
-                    child: const Text('Add'),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Code for going back to home page
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple[700],
+                  const SizedBox(width: 10),
+
+                  // Text Field for amount
+                  Expanded(
+                    flex: 1,
+                    child: TextField(
+                      controller: amountController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        hintText: 'Amount',
+                        border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
                     ),
-                    child: const Text('Back'),
+                  ),
+                  const SizedBox(width: 10),
+
+                  // Add button
+                  ElevatedButton(
+                    onPressed: _addInvestment,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple[300],
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Add',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -100,7 +165,7 @@ class InvestmentItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

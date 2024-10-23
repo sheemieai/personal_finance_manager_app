@@ -76,67 +76,72 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
             // Buttons for selecting Daily, Weekly, or Monthly
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              // Button displays
               children: [
                 // Daily button
-                ElevatedButton(
-                  onPressed: () => updateOption('Daily'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16.0, horizontal: 40.0),
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => updateOption('Daily'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      backgroundColor: selectedOption == 'Daily'
+                          ? Colors.blue
+                          : Colors.lightBlue[200],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    backgroundColor: selectedOption == 'Daily'
-                        ? Colors.blue
-                        : Colors.lightBlue[200],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    child: const Text('Daily'),
                   ),
-                  child: const Text('Daily'),
                 ),
+                const SizedBox(width: 10),
                 // Weekly button
-                ElevatedButton(
-                  onPressed: () => updateOption('Weekly'),
-                  child: const Text('Weekly'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16.0, horizontal: 40.0),
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => updateOption('Weekly'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      backgroundColor: selectedOption == 'Weekly'
+                          ? Colors.blue
+                          : Colors.lightBlue[200],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    backgroundColor: selectedOption == 'Weekly'
-                        ? Colors.blue
-                        : Colors.lightBlue[200],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    child: const Text('Weekly'),
                   ),
                 ),
+                const SizedBox(width: 10),
                 // Monthly button
-                ElevatedButton(
-                  onPressed: () => updateOption('Monthly'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 16.0, horizontal: 40.0),
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => updateOption('Monthly'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      backgroundColor: selectedOption == 'Monthly'
+                          ? Colors.blue
+                          : Colors.lightBlue[200],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    backgroundColor: selectedOption == 'Monthly'
-                        ? Colors.blue
-                        : Colors.lightBlue[200],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    child: const Text('Monthly'),
                   ),
-                  child: const Text('Monthly'),
                 ),
               ],
             ),
+
             const SizedBox(height: 10),
             if (errorMessage.isNotEmpty)
               Text(
@@ -207,82 +212,95 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
             ),
             const Spacer(),
             // Text Field for Changing Budget
-            TextField(
-              controller: BudgetController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Enter Budget amount',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            // Change Budget Button
-            ElevatedButton(
-              onPressed: () {
-                if (selectedOption.isEmpty) {
-                  setState(() {
-                    errorMessage =
-                        'Please select an option (Daily, Weekly, Monthly)!!';
-                  });
-                  return;
-                }
-                double enteredBudget =
-                    double.tryParse(BudgetController.text) ?? 0.0;
-                setState(() {
-                  if (selectedOption == 'Daily') {
-                    dailyBudget = enteredBudget;
-                  } else if (selectedOption == 'Weekly') {
-                    weeklyBudget = enteredBudget;
-                  } else if (selectedOption == 'Monthly') {
-                    monthlyBudget = enteredBudget;
-                  }
-                  BudgetController.clear();
-                });
-              },
-              child: const Text('Change Budget'),
+            Row(
+              children: [
+                // Half-width Text Field for budget
+                Expanded(
+                  flex: 1, // Makes it take half the available width
+                  child: TextField(
+                    controller: BudgetController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter Budget amount',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                    width: 10), // Space between the text field and button
+
+                // Change Budget Button
+                ElevatedButton(
+                  onPressed: () {
+                    if (selectedOption.isEmpty) {
+                      setState(() {
+                        errorMessage =
+                            'Please select an option (Daily, Weekly, Monthly)!!';
+                      });
+                      return;
+                    }
+                    double enteredBudget =
+                        double.tryParse(BudgetController.text) ?? 0.0;
+                    setState(() {
+                      if (selectedOption == 'Daily') {
+                        dailyBudget = enteredBudget;
+                      } else if (selectedOption == 'Weekly') {
+                        weeklyBudget = enteredBudget;
+                      } else if (selectedOption == 'Monthly') {
+                        monthlyBudget = enteredBudget;
+                      }
+                      BudgetController.clear();
+                    });
+                  },
+                  child: const Text('Change Budget'),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
             // text field for adding spending
-            TextField(
-              controller: spendingController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Enter spending amount',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Add button
-            ElevatedButton(
-              onPressed: () {
-                if (selectedOption.isEmpty) {
-                  setState(() {
-                    errorMessage =
-                        'Please select an option (Daily, Weekly, Monthly)!!';
-                  });
-                  return;
-                }
-                double enteredSpending =
-                    double.tryParse(spendingController.text) ?? 0.0;
-                setState(() {
-                  if (selectedOption == 'Daily') {
-                    dailySpending += enteredSpending;
-                  } else if (selectedOption == 'Weekly') {
-                    weeklySpending += enteredSpending;
-                  } else if (selectedOption == 'Monthly') {
-                    monthlySpending += enteredSpending;
-                  }
-                  spendingController.clear();
-                });
-              },
-              child: const Text('Add Spending'),
-            ),
-            const SizedBox(height: 10),
-            // Back Button
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Back'),
+            Row(
+              children: [
+                // Half-width Text Field for spending
+                Expanded(
+                  flex: 1, // Makes it take half the available width
+                  child: TextField(
+                    controller: spendingController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Enter spending amount',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                    width: 10), // Space between the text field and button
+
+                // Add Spending Button
+                ElevatedButton(
+                  onPressed: () {
+                    if (selectedOption.isEmpty) {
+                      setState(() {
+                        errorMessage =
+                            'Please select an option (Daily, Weekly, Monthly)!!';
+                      });
+                      return;
+                    }
+                    double enteredSpending =
+                        double.tryParse(spendingController.text) ?? 0.0;
+                    setState(() {
+                      if (selectedOption == 'Daily') {
+                        dailySpending += enteredSpending;
+                      } else if (selectedOption == 'Weekly') {
+                        weeklySpending += enteredSpending;
+                      } else if (selectedOption == 'Monthly') {
+                        monthlySpending += enteredSpending;
+                      }
+                      spendingController.clear();
+                    });
+                  },
+                  child: const Text('Add Spending'),
+                ),
+              ],
             ),
           ],
         ),
