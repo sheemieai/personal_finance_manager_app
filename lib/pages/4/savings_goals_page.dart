@@ -9,17 +9,25 @@ class SavingGoalsPage extends StatefulWidget {
 }
 
 class _SavingGoalsPageState extends State<SavingGoalsPage> {
+  String errorMessage = '';
+
   String selectedOption = '';
   double dailySpending = 0.0;
   double weeklySpending = 0.0;
   double monthlySpending = 0.0;
-  double budget = 0.0;
+
+  double dailyBudget = 0.0;
+  double weeklyBudget = 0.0;
+  double monthlyBudget = 0.0;
+
   final TextEditingController spendingController = TextEditingController();
+  final TextEditingController BudgetController = TextEditingController();
 
   // Method to update (Daily, Weekly, Monthly)
   void updateOption(String option) {
     setState(() {
       selectedOption = option;
+      errorMessage = '';
     });
   }
 
@@ -33,6 +41,19 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
         return monthlySpending;
       default:
         return dailySpending;
+    }
+  }
+
+  double getCurrentBudget() {
+    switch (selectedOption) {
+      case 'Daily':
+        return dailyBudget;
+      case 'Weekly':
+        return weeklyBudget;
+      case 'Monthly':
+        return monthlyBudget;
+      default:
+        return dailyBudget;
     }
   }
 
@@ -98,7 +119,6 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                 // Monthly button
                 ElevatedButton(
                   onPressed: () => updateOption('Monthly'),
-                  child: const Text('Monthly'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         vertical: 16.0, horizontal: 40.0),
@@ -113,9 +133,17 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
+                  child: const Text('Monthly'),
                 ),
               ],
             ),
+            const SizedBox(height: 10),
+            if (errorMessage.isNotEmpty)
+              Text(
+                errorMessage,
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+              ),
+
             const SizedBox(height: 20),
             // Display spending based on selection
             Container(
@@ -157,12 +185,19 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    getCurrentSpending() > budget
+                    '\$${getCurrentBudget().toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    getCurrentSpending() > getCurrentBudget()
                         ? 'You are overspending!'
                         : 'You are within your budget',
                     style: TextStyle(
                       fontSize: 18,
-                      color: getCurrentSpending() > budget
+                      color: getCurrentSpending() > getCurrentBudget()
                           ? Colors.red
                           : Colors.green,
                     ),
@@ -171,10 +206,37 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
               ),
             ),
             const Spacer(),
+            // Text Field for Changing Budget
+            TextField(
+              controller: BudgetController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Enter Budget amount',
+                border: OutlineInputBorder(),
+              ),
+            ),
             // Change Budget Button
             ElevatedButton(
               onPressed: () {
-                // TODO add logic to change budget
+                if (selectedOption.isEmpty) {
+                  setState(() {
+                    errorMessage =
+                        'Please select an option (Daily, Weekly, Monthly)!!';
+                  });
+                  return;
+                }
+                double enteredBudget =
+                    double.tryParse(BudgetController.text) ?? 0.0;
+                setState(() {
+                  if (selectedOption == 'Daily') {
+                    dailyBudget = enteredBudget;
+                  } else if (selectedOption == 'Weekly') {
+                    weeklyBudget = enteredBudget;
+                  } else if (selectedOption == 'Monthly') {
+                    monthlyBudget = enteredBudget;
+                  }
+                  BudgetController.clear();
+                });
               },
               child: const Text('Change Budget'),
             ),
@@ -192,6 +254,13 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
             // Add button
             ElevatedButton(
               onPressed: () {
+                if (selectedOption.isEmpty) {
+                  setState(() {
+                    errorMessage =
+                        'Please select an option (Daily, Weekly, Monthly)!!';
+                  });
+                  return;
+                }
                 double enteredSpending =
                     double.tryParse(spendingController.text) ?? 0.0;
                 setState(() {
