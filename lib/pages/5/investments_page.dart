@@ -240,11 +240,11 @@ class InvestmentItem extends StatelessWidget {
         children: [
           Text(
             company,
-            style: const TextStyle(fontSize: 50),
+            style: const TextStyle(fontSize: 30),
           ),
           Text(
             amount,
-            style: const TextStyle(fontSize: 50),
+            style: const TextStyle(fontSize: 30),
           ),
         ],
       ),

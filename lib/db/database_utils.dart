@@ -271,9 +271,19 @@ class DatabaseHelper {
   }
 
   // User Expenses Table Functions
-  Future<int> createUserExpense(
-      final int userId, final String userExpenseName) async {
+  Future<int?> createUserExpense(final int userId, final String userExpenseName) async {
     final db = await instance.database;
+
+    final List<Map<String, dynamic>> existingExpenses = await db.query(
+      "user_expenses",
+      where: "user_id = ? AND user_expense_name = ?",
+      whereArgs: [userId, userExpenseName],
+    );
+
+    if (existingExpenses.isNotEmpty) {
+      return null;
+    }
+
     return await db.insert("user_expenses", {
       "user_id": userId,
       "user_expense_name": userExpenseName,
@@ -296,15 +306,68 @@ class DatabaseHelper {
     return await db.delete("user_expenses", where: "id = ?", whereArgs: [id]);
   }
 
-  // Expenses Table Functions
-  Future<int> createExpense(final int userExpenseId, final String expenseName,
-      final int expenseCost) async {
+  Future<List<String>> getUserExpenseNamesByUserId(final int userId) async {
     final db = await instance.database;
-    return await db.insert("expenses_table", {
-      "user_expense_id": userExpenseId,
-      "expense_name": expenseName,
-      "expense_cost": expenseCost,
-    });
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "user_expenses",
+      columns: ["user_expense_name"],
+      where: "user_id = ?",
+      whereArgs: [userId],
+    );
+
+    List<String> expenseNames = result
+        .map((row) {
+      String expenseName = row["user_expense_name"] as String;
+      return expenseName[0].toUpperCase() + expenseName.substring(1);
+    })
+        .toList();
+
+    return expenseNames;
+  }
+
+  Future<int?> getExpenseIdByNameAndUserId(final String expenseName, final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "user_expenses",
+      columns: ["id"],
+      where: "user_expense_name = ? AND user_id = ?",
+      whereArgs: [expenseName, userId],
+      limit: 1,
+    );
+
+    if (result.isNotEmpty) {
+      return result.first["id"] as int;
+    } else {
+      return null;
+    }
+  }
+
+  // Expenses Table Functions
+  Future<int> createExpense(final int userExpenseId, final String expenseName, final int expenseCost) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "expenses_table",
+      where: "user_expense_id = ? AND expense_name = ?",
+      whereArgs: [userExpenseId, expenseName],
+    );
+
+    if (result.isNotEmpty) {
+      return await db.update(
+        "expenses_table",
+        {"expense_cost": expenseCost},
+        where: "user_expense_id = ? AND expense_name = ?",
+        whereArgs: [userExpenseId, expenseName],
+      );
+    } else {
+      return await db.insert("expenses_table", {
+        "user_expense_id": userExpenseId,
+        "expense_name": expenseName,
+        "expense_cost": expenseCost,
+      });
+    }
   }
 
   Future<int> updateExpense(final int id, final int userExpenseId,
@@ -325,6 +388,36 @@ class DatabaseHelper {
   Future<int> deleteExpense(final int id) async {
     final db = await instance.database;
     return await db.delete("expenses_table", where: "id = ?", whereArgs: [id]);
+  }
+
+  Future<List<Map<String, dynamic>>> getAllExpensesByUserExpenseId(final int userExpenseId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "expenses_table",
+      where: "user_expense_id = ?",
+      whereArgs: [userExpenseId],
+    );
+
+    return result;
+  }
+
+  Future<int?> getExpenseIdByUserExpenseName(final String expenseName, final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "user_expenses",
+      columns: ["id"],
+      where: "user_expense_name = ? AND user_id = ?",
+      whereArgs: [expenseName, userId],
+      limit: 1,
+    );
+
+    if (result.isNotEmpty) {
+      return result.first["id"] as int?;
+    } else {
+      return null;
+    }
   }
 
   // User Investment Table Functions
