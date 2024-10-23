@@ -366,14 +366,36 @@ class DatabaseHelper {
   }
 
   // Investment Portfolio Table Functions
-  Future<int> createInvestmentPortfolio(final int userId,
-      final String portfolioName, int totalPortfolioAmount) async {
+  Future<int> createInvestmentPortfolio(final int userId, final String portfolioName,
+      final int totalPortfolioAmount) async {
     final db = await instance.database;
-    return await db.insert("investment_portfolio", {
-      "user_id": userId,
-      "portfolio_name": portfolioName,
-      "total_portfolio_amount": totalPortfolioAmount,
-    });
+
+    final List<Map<String, dynamic>> result = await db.query(
+      "investment_portfolio",
+      columns: ["id", "total_portfolio_amount"],
+      where: "user_id = ? AND portfolio_name = ?",
+      whereArgs: [userId, portfolioName],
+      limit: 1,
+    );
+
+    if (result.isNotEmpty) {
+      final int portfolioId = result.first["id"] as int;
+      final int existingAmount = result.first["total_portfolio_amount"] as int;
+      final int updatedAmount = existingAmount + totalPortfolioAmount;
+
+      return await db.update(
+        "investment_portfolio",
+        {"total_portfolio_amount": updatedAmount},
+        where: "id = ?",
+        whereArgs: [portfolioId],
+      );
+    } else {
+      return await db.insert("investment_portfolio", {
+        "user_id": userId,
+        "portfolio_name": portfolioName,
+        "total_portfolio_amount": totalPortfolioAmount,
+      });
+    }
   }
 
   Future<int> updateInvestmentPortfolio(final int id, final int userId,
@@ -391,10 +413,39 @@ class DatabaseHelper {
     );
   }
 
+  Future<void> updatePortfolioAmount(final int portfolioId, final int newAmount) async {
+    final db = await instance.database;
+
+    await db.update(
+      'investment_portfolio',
+      {'total_portfolio_amount': newAmount},
+      where: 'id = ?',
+      whereArgs: [portfolioId],
+    );
+  }
+
   Future<int> deleteInvestmentPortfolio(int id) async {
     final db = await instance.database;
     return await db
         .delete("investment_portfolio", where: "id = ?", whereArgs: [id]);
+  }
+
+  Future<int?> getPortfolioIdByCompanyName(final int userId, final String portfolioName) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> result = await db.query(
+      'investment_portfolio',
+      columns: ['id'],
+      where: 'user_id = ? AND portfolio_name = ?',
+      whereArgs: [userId, portfolioName],
+      limit: 1,
+    );
+
+    if (result.isNotEmpty) {
+      return result.first['id'] as int;
+    } else {
+      return null;
+    }
   }
 
   Future<void> updateTotalPortfolioAmountByUserId(final int userId) async {
@@ -562,6 +613,8 @@ class DatabaseHelper {
 
   Future<int> addLoggedInUser(final int userId, final String username) async {
     final db = await instance.database;
+
+    await db.delete("current_user");
 
     return await db.insert(
       "current_user",
