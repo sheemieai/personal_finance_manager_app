@@ -89,22 +89,13 @@ class DatabaseHelper {
     ''');
 
     // Table for user savings, connected to user table
-    // entry_month example: "october"
-    // entry_date_number example: 13
-    // entry_year example: "2024"
-    // entry_day_of_week example: "sunday"
-    // entry_name example: "grocery"
-    // entry_cost example: 100
     await db.execute('''
     CREATE TABLE user_savings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
-      entry_month TEXT NOT NULL,
-      entry_date_number INTEGER NOT NULL,
-      entry_year TEXT NOT NULL,
-      entry_day_of_week TEXT NOT NULL,
-      entry_name TEXT NOT NULL,
-      entry_cost INTEGER NOT NULL,
+      savings_total_daily INTEGER NOT NULL,
+      savings_total_weekly INTEGER NOT NULL,
+      savings_total_monthly INTEGER NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
     )
     ''');
@@ -604,55 +595,156 @@ class DatabaseHelper {
   }
 
   // User Savings Table Functions
-  Future<int> createUserSavings(
-      final int userId,
-      final String entryMonth,
-      final int entryDateNumber,
-      final String entryYear,
-      final String entryDayOfWeek,
-      final String entryName,
-      final int entryCost) async {
+  Future<int?> getDailySavings(final int userId) async {
     final db = await instance.database;
-    return await db.insert("user_savings", {
-      "user_id": userId,
-      "entry_month": entryMonth,
-      "entry_date_number": entryDateNumber,
-      "entry_year": entryYear,
-      "entry_day_of_week": entryDayOfWeek,
-      "entry_name": entryName,
-      "entry_cost": entryCost,
-    });
-  }
 
-  Future<int> updateUserSavings(
-      final int id,
-      final int userId,
-      final String entryMonth,
-      final int entryDateNumber,
-      final String entryYear,
-      final String entryDayOfWeek,
-      final String entryName,
-      final int entryCost) async {
-    final db = await instance.database;
-    return await db.update(
-      "user_savings",
-      {
-        "user_id": userId,
-        "entry_month": entryMonth,
-        "entry_date_number": entryDateNumber,
-        "entry_year": entryYear,
-        "entry_day_of_week": entryDayOfWeek,
-        "entry_name": entryName,
-        "entry_cost": entryCost,
-      },
-      where: "id = ?",
-      whereArgs: [id],
+    final List<Map<String, dynamic>> savings = await db.query(
+      'user_savings',
+      columns: ['savings_total_daily'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
     );
+
+    if (savings.isNotEmpty) {
+      return savings.first['savings_total_daily'] as int?;
+    }
+
+    return null;
   }
 
-  Future<int> deleteUserSavings(final int id) async {
+  Future<void> setDailySavings(final int userId, final int dailySavings) async {
     final db = await instance.database;
-    return await db.delete("user_savings", where: "id = ?", whereArgs: [id]);
+
+    final List<Map<String, dynamic>> existingSavings = await db.query(
+      'user_savings',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (existingSavings.isEmpty) {
+      await db.insert(
+        'user_savings',
+        {
+          'user_id': userId,
+          'savings_total_daily': dailySavings,
+          'savings_total_weekly': 0,
+          'savings_total_monthly': 0,
+        },
+      );
+    } else {
+      await db.update(
+        'user_savings',
+        {
+          'savings_total_daily': dailySavings,
+        },
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    }
+  }
+
+  Future<int?> getWeeklySavings(final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> savings = await db.query(
+      'user_savings',
+      columns: ['savings_total_weekly'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (savings.isNotEmpty) {
+      return savings.first['savings_total_weekly'] as int?;
+    }
+
+    return null;
+  }
+
+  Future<void> setWeeklySavings(
+      final int userId, final int weeklySavings) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> existingSavings = await db.query(
+      'user_savings',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (existingSavings.isEmpty) {
+      await db.insert(
+        'user_savings',
+        {
+          'user_id': userId,
+          'savings_total_daily': 0,
+          'savings_total_weekly': weeklySavings,
+          'savings_total_monthly': 0,
+        },
+      );
+    } else {
+      await db.update(
+        'user_savings',
+        {
+          'savings_total_weekly': weeklySavings,
+        },
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    }
+  }
+
+  Future<int?> getMonthlySavings(final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> savings = await db.query(
+      'user_savings',
+      columns: ['savings_total_monthly'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (savings.isNotEmpty) {
+      return savings.first['savings_total_monthly'] as int?;
+    }
+
+    return null;
+  }
+
+  Future<void> setMonthlySavings(
+      final int userId, final int monthlySavings) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> existingSavings = await db.query(
+      'user_savings',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (existingSavings.isEmpty) {
+      await db.insert(
+        'user_savings',
+        {
+          'user_id': userId,
+          'savings_total_daily': 0,
+          'savings_total_weekly': 0,
+          'savings_total_monthly': monthlySavings,
+        },
+      );
+    } else {
+      await db.update(
+        'user_savings',
+        {
+          'savings_total_monthly': monthlySavings,
+        },
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    }
   }
 
   // User Budget Table Functions

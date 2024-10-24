@@ -12,9 +12,7 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
   String errorMessage = '';
 
   String selectedOption = '';
-  double dailySpending = 0.0;
-  double weeklySpending = 0.0;
-  double monthlySpending = 0.0;
+  int? currentSpending = 0;
 
   int? currentBudget = 0;
 
@@ -25,6 +23,7 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
   void initState() {
     super.initState();
     getCurrentBudget();
+    getCurrentSpending();
   }
 
   // Method to update (Daily, Weekly, Monthly)
@@ -36,17 +35,33 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
   }
 
   // Method to get current spending
-  double getCurrentSpending() {
-    switch (selectedOption) {
-      case 'Daily':
-        return dailySpending;
-      case 'Weekly':
-        return weeklySpending;
-      case 'Monthly':
-        return monthlySpending;
-      default:
-        return dailySpending;
-    }
+  void getCurrentSpending() async {
+    final String? username =
+        await DatabaseHelper.instance.getLoggedInUsername();
+    final int? userId =
+        await DatabaseHelper.instance.getUserIdByUsername(username!);
+    final int? databaseDailySpending =
+        await DatabaseHelper.instance.getDailySavings(userId!);
+    final int? databaseWeeklySpending =
+        await DatabaseHelper.instance.getWeeklySavings(userId!);
+    final int? databaseMonthlySpending =
+        await DatabaseHelper.instance.getMonthlySavings(userId!);
+    setState(() {
+      switch (selectedOption) {
+        case 'Daily':
+          currentSpending = databaseDailySpending;
+          break;
+        case 'Weekly':
+          currentSpending = databaseWeeklySpending;
+          break;
+        case 'Monthly':
+          currentSpending = databaseMonthlySpending;
+          break;
+        default:
+          currentSpending = databaseDailySpending;
+          break;
+      }
+    });
   }
 
   // Method to get current budget
@@ -94,26 +109,32 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
   }
 
   // Method to add spending based on selection
-  void addSpending() {
+  void addSpending() async {
     if (!validateSelection()) return;
 
-    double enteredSpending = double.tryParse(spendingController.text) ?? 0.0;
-    setState(() {
-      switch (selectedOption) {
-        case 'Daily':
-          dailySpending += enteredSpending;
-          break;
-        case 'Weekly':
-          weeklySpending += enteredSpending;
-          break;
-        case 'Monthly':
-          monthlySpending += enteredSpending;
-          break;
-        default:
-          break;
-      }
-      spendingController.clear();
-    });
+    int enteredSpending = int.tryParse(spendingController.text) ?? 0;
+    final String? username =
+        await DatabaseHelper.instance.getLoggedInUsername();
+    final int? userId =
+        await DatabaseHelper.instance.getUserIdByUsername(username!);
+
+    switch (selectedOption) {
+      case 'Daily':
+        await DatabaseHelper.instance.setDailySavings(userId!, enteredSpending);
+        break;
+      case 'Weekly':
+        await DatabaseHelper.instance
+            .setWeeklySavings(userId!, enteredSpending);
+        break;
+      case 'Monthly':
+        await DatabaseHelper.instance
+            .setMonthlySavings(userId!, enteredSpending);
+        break;
+      default:
+        break;
+    }
+    getCurrentSpending();
+    spendingController.clear();
   }
 
   // Method to add budget based on selection
@@ -139,6 +160,7 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
       default:
         break;
     }
+    getCurrentBudget();
     budgetController.clear();
   }
 
@@ -165,7 +187,11 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                 // Daily button
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => updateOption('Daily'),
+                    onPressed: () => {
+                      updateOption('Daily'),
+                      getCurrentBudget(),
+                      getCurrentSpending()
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       textStyle: const TextStyle(
@@ -186,7 +212,11 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                 // Weekly button
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => updateOption('Weekly'),
+                    onPressed: () => {
+                      updateOption('Weekly'),
+                      getCurrentBudget(),
+                      getCurrentSpending()
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       textStyle: const TextStyle(
@@ -207,7 +237,11 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                 // Monthly button
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => updateOption('Monthly'),
+                    onPressed: () => {
+                      updateOption('Monthly'),
+                      getCurrentBudget(),
+                      getCurrentSpending()
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       textStyle: const TextStyle(
@@ -251,7 +285,7 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '\$${getCurrentSpending().toStringAsFixed(2)}',
+                    '\$${(currentSpending ?? 0).toStringAsFixed(2)}',
                     style: const TextStyle(
                         fontSize: 24, fontWeight: FontWeight.bold),
                   ),
@@ -275,19 +309,19 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '\$${currentBudget!.toStringAsFixed(2)}',
+                    '\$${(currentBudget ?? 0).toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    getCurrentSpending() > currentBudget!
+                    (currentSpending ?? 0) > (currentBudget ?? 0)
                         ? 'You are overspending!'
                         : 'You are within your budget',
                     style: TextStyle(
                       fontSize: 18,
-                      color: getCurrentSpending() > currentBudget!
+                      color: (currentSpending ?? 0) > (currentBudget ?? 0)
                           ? Colors.red
                           : Colors.green,
                     ),
