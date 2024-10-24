@@ -271,7 +271,8 @@ class DatabaseHelper {
   }
 
   // User Expenses Table Functions
-  Future<int?> createUserExpense(final int userId, final String userExpenseName) async {
+  Future<int?> createUserExpense(
+      final int userId, final String userExpenseName) async {
     final db = await instance.database;
 
     final List<Map<String, dynamic>> existingExpenses = await db.query(
@@ -316,17 +317,16 @@ class DatabaseHelper {
       whereArgs: [userId],
     );
 
-    List<String> expenseNames = result
-        .map((row) {
+    List<String> expenseNames = result.map((row) {
       String expenseName = row["user_expense_name"] as String;
       return expenseName[0].toUpperCase() + expenseName.substring(1);
-    })
-        .toList();
+    }).toList();
 
     return expenseNames;
   }
 
-  Future<int?> getExpenseIdByNameAndUserId(final String expenseName, final int userId) async {
+  Future<int?> getExpenseIdByNameAndUserId(
+      final String expenseName, final int userId) async {
     final db = await instance.database;
 
     final List<Map<String, dynamic>> result = await db.query(
@@ -345,7 +345,8 @@ class DatabaseHelper {
   }
 
   // Expenses Table Functions
-  Future<int> createExpense(final int userExpenseId, final String expenseName, final int expenseCost) async {
+  Future<int> createExpense(final int userExpenseId, final String expenseName,
+      final int expenseCost) async {
     final db = await instance.database;
 
     final List<Map<String, dynamic>> result = await db.query(
@@ -390,7 +391,8 @@ class DatabaseHelper {
     return await db.delete("expenses_table", where: "id = ?", whereArgs: [id]);
   }
 
-  Future<List<Map<String, dynamic>>> getAllExpensesByUserExpenseId(final int userExpenseId) async {
+  Future<List<Map<String, dynamic>>> getAllExpensesByUserExpenseId(
+      final int userExpenseId) async {
     final db = await instance.database;
 
     final List<Map<String, dynamic>> result = await db.query(
@@ -402,7 +404,8 @@ class DatabaseHelper {
     return result;
   }
 
-  Future<int?> getExpenseIdByUserExpenseName(final String expenseName, final int userId) async {
+  Future<int?> getExpenseIdByUserExpenseName(
+      final String expenseName, final int userId) async {
     final db = await instance.database;
 
     final List<Map<String, dynamic>> result = await db.query(
@@ -459,8 +462,8 @@ class DatabaseHelper {
   }
 
   // Investment Portfolio Table Functions
-  Future<int> createInvestmentPortfolio(final int userId, final String portfolioName,
-      final int totalPortfolioAmount) async {
+  Future<int> createInvestmentPortfolio(final int userId,
+      final String portfolioName, final int totalPortfolioAmount) async {
     final db = await instance.database;
 
     final List<Map<String, dynamic>> result = await db.query(
@@ -506,7 +509,8 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> updatePortfolioAmount(final int portfolioId, final int newAmount) async {
+  Future<void> updatePortfolioAmount(
+      final int portfolioId, final int newAmount) async {
     final db = await instance.database;
 
     await db.update(
@@ -523,7 +527,8 @@ class DatabaseHelper {
         .delete("investment_portfolio", where: "id = ?", whereArgs: [id]);
   }
 
-  Future<int?> getPortfolioIdByCompanyName(final int userId, final String portfolioName) async {
+  Future<int?> getPortfolioIdByCompanyName(
+      final int userId, final String portfolioName) async {
     final db = await instance.database;
 
     final List<Map<String, dynamic>> result = await db.query(
@@ -680,6 +685,163 @@ class DatabaseHelper {
       where: "id = ?",
       whereArgs: [id],
     );
+  }
+
+  Future<bool> setDailyBudget(final int userId, final int dailyBudget) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> existingBudget = await db.query(
+      'user_budget',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (existingBudget.isEmpty) {
+      await db.insert(
+        'user_budget',
+        {
+          'user_id': userId,
+          'daily_budget': dailyBudget,
+          'weekly_budget': 0,
+          'monthly_budget': 0,
+        },
+      );
+    } else {
+      await db.update(
+        'user_budget',
+        {
+          'daily_budget': dailyBudget,
+        },
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    }
+
+    return true;
+  }
+
+  Future<int?> getDailyBudget(final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> budget = await db.query(
+      'user_budget',
+      columns: ['daily_budget'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (budget.isNotEmpty) {
+      return budget.first['daily_budget'] as int?;
+    }
+
+    return null;
+  }
+
+  Future<bool> setWeeklyBudget(final int userId, final int weeklyBudget) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> existingBudget = await db.query(
+      'user_budget',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (existingBudget.isEmpty) {
+      await db.insert(
+        'user_budget',
+        {
+          'user_id': userId,
+          'daily_budget': 0,
+          'weekly_budget': weeklyBudget,
+          'monthly_budget': 0,
+        },
+      );
+    } else {
+      await db.update(
+        'user_budget',
+        {
+          'weekly_budget': weeklyBudget,
+        },
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    }
+
+    return true;
+  }
+
+  Future<int?> getWeeklyBudget(final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> budget = await db.query(
+      'user_budget',
+      columns: ['weekly_budget'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (budget.isNotEmpty) {
+      return budget.first['weekly_budget'] as int?;
+    }
+
+    return null;
+  }
+
+  Future<bool> setMonthlyBudget(
+      final int userId, final int monthlyBudget) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> existingBudget = await db.query(
+      'user_budget',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (existingBudget.isEmpty) {
+      await db.insert(
+        'user_budget',
+        {
+          'user_id': userId,
+          'daily_budget': 0,
+          'weekly_budget': 0,
+          'monthly_budget': monthlyBudget,
+        },
+      );
+    } else {
+      await db.update(
+        'user_budget',
+        {
+          'monthly_budget': monthlyBudget,
+        },
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    }
+
+    return true;
+  }
+
+  Future<int?> getMonthlyBudget(final int userId) async {
+    final db = await instance.database;
+
+    final List<Map<String, dynamic>> budget = await db.query(
+      'user_budget',
+      columns: ['monthly_budget'],
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (budget.isNotEmpty) {
+      return budget.first['monthly_budget'] as int?;
+    }
+
+    return null;
   }
 
   Future<int> deleteUserBudget(final int id) async {

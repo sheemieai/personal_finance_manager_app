@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../db/database_utils.dart';
+import 'package:personal_finance_manager/db/database_utils.dart';
 
 class SavingGoalsPage extends StatefulWidget {
   const SavingGoalsPage({super.key});
@@ -16,12 +16,16 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
   double weeklySpending = 0.0;
   double monthlySpending = 0.0;
 
-  double dailyBudget = 0.0;
-  double weeklyBudget = 0.0;
-  double monthlyBudget = 0.0;
+  int? currentBudget = 0;
 
   final TextEditingController spendingController = TextEditingController();
   final TextEditingController budgetController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentBudget();
+  }
 
   // Method to update (Daily, Weekly, Monthly)
   void updateOption(String option) {
@@ -45,18 +49,34 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
     }
   }
 
-  // MEthod to get current budget
-  double getCurrentBudget() {
-    switch (selectedOption) {
-      case 'Daily':
-        return dailyBudget;
-      case 'Weekly':
-        return weeklyBudget;
-      case 'Monthly':
-        return monthlyBudget;
-      default:
-        return dailyBudget;
-    }
+  // Method to get current budget
+  void getCurrentBudget() async {
+    final String? username =
+        await DatabaseHelper.instance.getLoggedInUsername();
+    final int? userId =
+        await DatabaseHelper.instance.getUserIdByUsername(username!);
+    final int? databaseDailyBudget =
+        await DatabaseHelper.instance.getDailyBudget(userId!);
+    final int? databaseWeeklyBudget =
+        await DatabaseHelper.instance.getWeeklyBudget(userId!);
+    final int? databaseMonthlyBudget =
+        await DatabaseHelper.instance.getMonthlyBudget(userId!);
+    setState(() {
+      switch (selectedOption) {
+        case 'Daily':
+          currentBudget = databaseDailyBudget;
+          break;
+        case 'Weekly':
+          currentBudget = databaseWeeklyBudget;
+          break;
+        case 'Monthly':
+          currentBudget = databaseMonthlyBudget;
+          break;
+        default:
+          currentBudget = databaseDailyBudget;
+          break;
+      }
+    });
   }
 
   // Method to validate the selection
@@ -78,7 +98,6 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
     if (!validateSelection()) return;
 
     double enteredSpending = double.tryParse(spendingController.text) ?? 0.0;
-
     setState(() {
       switch (selectedOption) {
         case 'Daily':
@@ -98,27 +117,29 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
   }
 
   // Method to add budget based on selection
-  void addBudget() {
+  void addBudget() async {
     if (!validateSelection()) return;
 
-    double enteredBudget = double.tryParse(budgetController.text) ?? 0.0;
+    int enteredBudget = int.tryParse(budgetController.text) ?? 0;
+    final String? username =
+        await DatabaseHelper.instance.getLoggedInUsername();
+    final int? userId =
+        await DatabaseHelper.instance.getUserIdByUsername(username!);
 
-    setState(() {
-      switch (selectedOption) {
-        case 'Daily':
-          dailyBudget = enteredBudget;
-          break;
-        case 'Weekly':
-          weeklyBudget = enteredBudget;
-          break;
-        case 'Monthly':
-          monthlyBudget = enteredBudget;
-          break;
-        default:
-          break;
-      }
-      budgetController.clear();
-    });
+    switch (selectedOption) {
+      case 'Daily':
+        await DatabaseHelper.instance.setDailyBudget(userId!, enteredBudget);
+        break;
+      case 'Weekly':
+        await DatabaseHelper.instance.setWeeklyBudget(userId!, enteredBudget);
+        break;
+      case 'Monthly':
+        await DatabaseHelper.instance.setMonthlyBudget(userId!, enteredBudget);
+        break;
+      default:
+        break;
+    }
+    budgetController.clear();
   }
 
   @override
@@ -254,19 +275,19 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '\$${getCurrentBudget().toStringAsFixed(2)}',
+                    '\$${currentBudget!.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    getCurrentSpending() > getCurrentBudget()
+                    getCurrentSpending() > currentBudget!
                         ? 'You are overspending!'
                         : 'You are within your budget',
                     style: TextStyle(
                       fontSize: 18,
-                      color: getCurrentSpending() > getCurrentBudget()
+                      color: getCurrentSpending() > currentBudget!
                           ? Colors.red
                           : Colors.green,
                     ),
