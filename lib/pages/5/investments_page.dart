@@ -196,7 +196,6 @@ class _InvestmentPageState extends State<InvestmentPage> {
                   ElevatedButton(
                     onPressed: _addInvestment,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[300],
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 15),
                       shape: RoundedRectangleBorder(

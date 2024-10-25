@@ -230,7 +230,6 @@ class _ExpensesPageState extends State<ExpensesPage> {
                             ElevatedButton(
                               onPressed: addExpenseToDatabase,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue[300],
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),

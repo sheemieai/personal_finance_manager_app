@@ -11,7 +11,7 @@ class SavingGoalsPage extends StatefulWidget {
 class _SavingGoalsPageState extends State<SavingGoalsPage> {
   String errorMessage = '';
 
-  String selectedOption = '';
+  String selectedOption = 'Daily';
   int? currentSpending = 0;
 
   int? currentBudget = 0;
@@ -199,8 +199,8 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                         fontWeight: FontWeight.bold,
                       ),
                       backgroundColor: selectedOption == 'Daily'
-                          ? Colors.blue
-                          : Colors.lightBlue[200],
+                          ? Colors.lightBlue[100]
+                          : Colors.white70,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -224,8 +224,8 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                         fontWeight: FontWeight.bold,
                       ),
                       backgroundColor: selectedOption == 'Weekly'
-                          ? Colors.blue
-                          : Colors.lightBlue[200],
+                          ? Colors.lightBlue[100]
+                          : Colors.white70,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -249,8 +249,8 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                         fontWeight: FontWeight.bold,
                       ),
                       backgroundColor: selectedOption == 'Monthly'
-                          ? Colors.blue
-                          : Colors.lightBlue[200],
+                          ? Colors.lightBlue[100]
+                          : Colors.white70,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -273,8 +273,16 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
             Container(
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,8 +305,16 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
             Container(
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,6 +331,7 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 10),
                   Text(
                     (currentSpending ?? 0) > (currentBudget ?? 0)
                         ? 'You are overspending!'
@@ -341,6 +358,8 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                     decoration: const InputDecoration(
                       labelText: 'Enter Budget amount',
                       border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
                   ),
                 ),
@@ -367,6 +386,8 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
                     decoration: const InputDecoration(
                       labelText: 'Enter spending amount',
                       border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
                   ),
                 ),
