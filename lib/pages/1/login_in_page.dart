@@ -101,7 +101,7 @@ class _LoginInPageState extends State<LoginInPage> {
       if (!validatePassword(createPasswordController.text)) {
         setState(() {
           alertTextFieldString = "Password must have 1 uppercase letter, "
-              "1 symbol, and be 8+ characters long";
+              "1 lowercase letter, 1 symbol, and be 8+ characters long";
         });
 
         alertDisappearEffect();
