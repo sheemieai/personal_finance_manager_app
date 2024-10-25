@@ -83,6 +83,21 @@ class _InvestmentPageState extends State<InvestmentPage> {
     }
   }
 
+  void deleteInvestment(final String investmentKey) async {
+    final String? username = await DatabaseHelper.instance.getLoggedInUsername();
+    final int? userId = await DatabaseHelper.instance.getUserIdByUsername(username!);
+
+    await DatabaseHelper.instance.deleteInvestmentPortfolioByCompany(userId!, investmentKey);
+    await DatabaseHelper.instance.updateTotalPortfolioAmountByUserId(userId);
+
+    final int databaseTotalInvestment = await DatabaseHelper.instance.getUserInvestmentTotalByUserId(userId);
+    final Map<String, String> databaseInvestmentsMap = await DatabaseHelper.instance.getPortfoliosById(userId);
+    setState(() {
+      investments = databaseInvestmentsMap;
+      totalInvestment = databaseTotalInvestment;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,7 +129,7 @@ class _InvestmentPageState extends State<InvestmentPage> {
                 ],
               ),
               child: Text(
-                'Total Invest\n\$${totalInvestment.toStringAsFixed(2)}',
+                'Total Invested:\n\$${totalInvestment.toStringAsFixed(2)}',
                 style: const TextStyle(
                   fontSize: 30,
                 ),
@@ -149,6 +164,7 @@ class _InvestmentPageState extends State<InvestmentPage> {
                       return InvestmentItem(
                         company: key,
                         amount: investments[key]!,
+                        onDelete: () => deleteInvestment(key),
                       );
                     },
                   ),
@@ -219,14 +235,16 @@ class _InvestmentPageState extends State<InvestmentPage> {
   }
 }
 
-// Widget for displaying companies to add
+// Widget for displaying companies to add and delete
 class InvestmentItem extends StatelessWidget {
   final String company;
   final String amount;
+  final VoidCallback onDelete;
 
   const InvestmentItem({
     required this.company,
     required this.amount,
+    required this.onDelete,
     super.key,
   });
 
@@ -235,18 +253,42 @@ class InvestmentItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            company,
-            style: const TextStyle(fontSize: 30),
+          // Company Name
+          Expanded(
+            flex: 3,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                company,
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
           ),
-          Text(
-            amount,
-            style: const TextStyle(fontSize: 30),
+
+          // Amount
+          Expanded(
+            flex: 2,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '\$$amount',
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
+          ),
+
+          // Delete button
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: onDelete,
+            ),
           ),
         ],
       ),
     );
   }
 }
+

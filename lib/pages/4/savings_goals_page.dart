@@ -175,10 +175,6 @@ class _SavingGoalsPageState extends State<SavingGoalsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Saving Goals',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
             const SizedBox(height: 20),
             // Buttons for selecting Daily, Weekly, or Monthly
             Row(

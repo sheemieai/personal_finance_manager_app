@@ -19,6 +19,7 @@ class _LoginInPageState extends State<LoginInPage> {
   String alertTextFieldString = "";
   bool showCreateAccountFields = false;
 
+  // Automatically makes the alert display disappear away a set time of seconds.
   void alertDisappearEffect() {
     Future.delayed(const Duration(seconds: 3), () {
       setState(() {
@@ -27,6 +28,7 @@ class _LoginInPageState extends State<LoginInPage> {
     });
   }
 
+  // Verifies the username and password entered in the text fields via the database
   void loginInButtonClicked() async {
     final int? databaseResult = await DatabaseHelper.instance.validateUser(
       usernameController.text.toLowerCase(), passwordController.text,
@@ -34,7 +36,7 @@ class _LoginInPageState extends State<LoginInPage> {
 
     if (databaseResult == null) {
       setState(() {
-        alertTextFieldString = "User not found!";
+        alertTextFieldString = "Incorrect username or password!";
       });
     } else if (databaseResult == -1) {
       setState(() {
@@ -58,7 +60,7 @@ class _LoginInPageState extends State<LoginInPage> {
         );
       } else {
         setState(() {
-          alertTextFieldString = "User not found!";
+          alertTextFieldString = "Error: No user id";
         });
       }
     }
@@ -66,6 +68,8 @@ class _LoginInPageState extends State<LoginInPage> {
     alertDisappearEffect();
   }
 
+  // Checks if the password has 1 uppercase, 1 lowercase, 1 symbol, and at least
+  // 8+ characters
   bool validatePassword(final String password) {
     RegExp passwordRegExp = RegExp(
       r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#\$&*~]).{8,}$',
@@ -74,6 +78,7 @@ class _LoginInPageState extends State<LoginInPage> {
     return passwordRegExp.hasMatch(password);
   }
 
+  // Shows the text fields that allows the user to create a new user
   void signUpButtonClicked() async {
     if (secondaryButtonTextString == "Sign Up") {
       setState(() {
@@ -124,6 +129,7 @@ class _LoginInPageState extends State<LoginInPage> {
     }
   }
 
+  // Deletes the database file for testing if database changes are made
   Future<void> deleteDatabaseFile() async {
     await DatabaseHelper.instance.deleteDatabaseFile();
     setState(() {
@@ -137,6 +143,7 @@ class _LoginInPageState extends State<LoginInPage> {
     return MaterialApp(
       home: Scaffold(
         /*
+        // Button used to delete the database if database changes are made
         appBar: AppBar(
           title: const Text("Reset Database"),
           actions: [
@@ -158,6 +165,8 @@ class _LoginInPageState extends State<LoginInPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 const SizedBox(height: 20.0),
+                // Container that holds the app name, log in fields, and create
+                // user fields.
                 Container(
                   width: 200.0,
                   height: 200.0,
@@ -180,6 +189,7 @@ class _LoginInPageState extends State<LoginInPage> {
                     textAlign: TextAlign.center,
                   ),
                 ),
+                // Login in fields
                 const SizedBox(height: 15.0),
                 SizedBox(
                   width: 400.0,
@@ -220,6 +230,7 @@ class _LoginInPageState extends State<LoginInPage> {
                   ),
                 ),
                 const SizedBox(height: 5.0),
+                // Sign up fields
                 SizedBox(
                   width: 400.0,
                   child: ElevatedButton(
@@ -263,14 +274,16 @@ class _LoginInPageState extends State<LoginInPage> {
                   const SizedBox(height: 15.0),
                   Container(
                     width: 300.0,
-                    height: 100.0,
+                    height: 110.0,
                     decoration: BoxDecoration(
                       color: Colors.deepOrange,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Center(
                       child: Text(
-                        "Password must have \n\t\t1 uppercase letter, \n\t\t1 symbol, "
+                        "Password must have \n\t\t1 uppercase letter, "
+                            "\n\t\t1 lowercase letter, "
+                            "\n\t\t1 symbol, "
                             "and \n\t\tbe 8+ characters long",
                         style: TextStyle(color: Colors.white),
                       ),

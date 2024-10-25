@@ -28,6 +28,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
     getDropdownCategories();
   }
 
+  // Get the drop down names from the database
   void getDropdownCategories() async {
     final String? username = await DatabaseHelper.instance.getLoggedInUsername();
     final int? userId = await DatabaseHelper.instance.getUserIdByUsername(username!);
@@ -43,6 +44,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
     }
   }
 
+  // Add an expense category or expense category's name and cost
   void addExpenseToDatabase() async {
     final String? username = await DatabaseHelper.instance.getLoggedInUsername();
     final int? userId = await DatabaseHelper.instance.getUserIdByUsername(username!);
@@ -76,6 +78,13 @@ class _ExpensesPageState extends State<ExpensesPage> {
     }
   }
 
+  // Delete an expense and the expense cost from the container and database.
+  void deleteExpense(final int expenseId) async {
+    await DatabaseHelper.instance.deleteExpense(expenseId);
+    getSelectedExpenseData();
+  }
+
+  // Get all expenses and those expenses' cost for a specific expense category
   void getSelectedExpenseData() async {
     final String? username = await DatabaseHelper.instance.getLoggedInUsername();
     final int? userId = await DatabaseHelper.instance.getUserIdByUsername(username!);
@@ -112,6 +121,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
               children: <Widget>[
                 SizedBox(
                   width: 300.0,
+                  // Drop down menu container
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     decoration: BoxDecoration(
@@ -149,6 +159,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
+                // Toggles to show the expenses and their cost for a specific category
                 if (showExpensesField) ...[
                   Align(
                     alignment: Alignment.centerLeft,
@@ -160,6 +171,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
                   const SizedBox(height: 20),
                   SizedBox(
                     height: 420.0,
+                    // Container shows the list of all the expenses for a specific category
                     child: Container(
                       width: 375.0,
                       padding: const EdgeInsets.all(20.0),
@@ -189,13 +201,24 @@ class _ExpensesPageState extends State<ExpensesPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    expense["expense_name"],
-                                    style: const TextStyle(fontSize: 18),
+                                  Expanded(
+                                    child: Text(
+                                      expense["expense_name"],
+                                      style: const TextStyle(fontSize: 18),
+                                    ),
                                   ),
-                                  Text(
-                                    "\$${expense["expense_cost"].toString()}  ",
-                                    style: const TextStyle(fontSize: 18),
+                                  Expanded(
+                                    child: Text(
+                                      "\$${expense["expense_cost"].toString()}",
+                                      style: const TextStyle(fontSize: 18),
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () {
+                                      deleteExpense(expense["id"]);
+                                    },
                                   ),
                                 ],
                               ),
@@ -206,6 +229,8 @@ class _ExpensesPageState extends State<ExpensesPage> {
                     ),
                   ),
                 ],
+                // Toggles the snack bar to add an expense category or to add an expense
+                // and that expense's cost for a specific expense category.
                 if (showSnackBar) ...[
                   Expanded(
                     child: Column(

@@ -594,6 +594,17 @@ class DatabaseHelper {
     return portfolioMap;
   }
 
+  Future<int> deleteInvestmentPortfolioByCompany(
+      final int userId, final String portfolioName) async {
+    final db = await instance.database;
+
+    return await db.delete(
+      "investment_portfolio",
+      where: "user_id = ? AND portfolio_name = ?",
+      whereArgs: [userId, portfolioName],
+    );
+  }
+
   // User Savings Table Functions
   Future<int?> getDailySavings(final int userId) async {
     final db = await instance.database;

@@ -28,6 +28,7 @@ class _HomePageState extends State<HomePage> {
     getLoggedInUsername();
   }
 
+  // Gets the logged in user from the database to display in the container's text
   void getLoggedInUsername() async {
     final String? databaseUsername = await DatabaseHelper.instance.getLoggedInUsername();
 
@@ -39,6 +40,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Automatically makes the alert display disappear away a set time of seconds.
   void alertDisappearEffect() {
     Future.delayed(const Duration(seconds: 3), () {
       setState(() {
@@ -47,6 +49,8 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Sets the income in the container's text to show the current income for the logged
+  // in user.
   void setIncomeInformation() async {
     final String? username = await DatabaseHelper.instance.getLoggedInUsername();
     final int? userId = await DatabaseHelper.instance.getUserIdByUsername(username!);
@@ -71,6 +75,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Navigates the page to the expenses page
   void expensesButton() {
     Navigator.push(
       context,
@@ -78,6 +83,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Navigates the page to the saving goals page
   void savingGoalsButton() {
     Navigator.push(
       context,
@@ -85,6 +91,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Navigates the page to the investment page
   void investmentButton() {
     Navigator.push(
       context,
@@ -92,13 +99,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void signOutButton() {
+  // Navigates the page to the log in page and logs out the user
+  void signOutButton() async {
+    await DatabaseHelper.instance.deleteLoggedInUser();
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => LoginInPage()),
     );
   }
 
+  // Changes the income based on the input amount from the user.
   Future<void> changeIncomeButton() async {
     if (changeIncomeTextString == "Change Income") {
       setState(() {
@@ -172,6 +182,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 40.0),
+              // Container that shows the logged in user and that user's income
               Container(
                 width: 400.0,
                 padding: const EdgeInsets.all(20.0),
@@ -231,6 +242,7 @@ class _HomePageState extends State<HomePage> {
                   alertTextFieldString
               ),
               const SizedBox(height: 25.0),
+              // Navigation buttons to navigate to other app pages.
               SizedBox(
                 width: 400.0,
                 child: ElevatedButton(
